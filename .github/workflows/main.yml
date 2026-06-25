@@ -1,4 +1,4 @@
-name: Build WSL2 Kernel with F2FS
+name: Build WSL2 Kernel with F2FS and EROFS
 
 on:
   workflow_dispatch:  # 手动触发
@@ -38,8 +38,15 @@ jobs:
         echo "CONFIG_F2FS_FS_SECURITY=y" >> .config
         echo "CONFIG_F2FS_CHECK_FS=y" >> .config
         echo "CONFIG_F2FS_FS_COMPRESSION=y" >> .config
-        # 可选：启用更多调试选项
-        # echo "CONFIG_F2FS_FAULT_INJECTION=y" >> .config
+        
+        # 启用 EROFS 支持（编译进内核）
+        echo "CONFIG_EROFS_FS=y" >> .config
+        echo "CONFIG_EROFS_FS_XATTR=y" >> .config
+        echo "CONFIG_EROFS_FS_POSIX_ACL=y" >> .config
+        echo "CONFIG_EROFS_FS_SECURITY=y" >> .config
+        echo "CONFIG_EROFS_FS_ZIP=y" >> .config
+        echo "CONFIG_EROFS_FS_ZSTD=y" >> .config
+        echo "CONFIG_EROFS_FS_LZ4=y" >> .config
         
         # 更新配置
         make olddefconfig
@@ -68,11 +75,12 @@ jobs:
         echo "Branch: ${{ matrix.kernel-branch }}" >> kernel_artifacts/version.txt
         echo "Build date: $(date)" >> kernel_artifacts/version.txt
         echo "F2FS Support: Enabled (CONFIG_F2FS_FS=y)" >> kernel_artifacts/version.txt
+        echo "EROFS Support: Enabled (CONFIG_EROFS_FS=y)" >> kernel_artifacts/version.txt
 
     - name: Upload kernel artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: wsl2-kernel-f2fs-${{ matrix.kernel-branch }}
+        name: wsl2-kernel-f2fs-erofs-${{ matrix.kernel-branch }}
         path: kernel_artifacts/
         retention-days: 30
 
